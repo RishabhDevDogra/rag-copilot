@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
+from app.services.retriever import search_docs
 
 router = APIRouter()
 
-# simple in-memory memory store
 SESSION_STORE = {}
 
 
@@ -19,9 +19,12 @@ def ask(req: AskRequest):
     history.append(req.question)
     SESSION_STORE[req.session_id] = history
 
+    docs = search_docs(req.question)
+
     return {
         "session_id": req.session_id,
         "question": req.question,
         "history": history,
-        "answer": f"You asked {len(history)} question(s). This is a dummy response."
+        "retrieved_docs": docs,
+        "answer": docs[0]["text"] if docs else "No relevant docs found"
     }
